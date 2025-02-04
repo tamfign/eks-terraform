@@ -22,7 +22,7 @@ resource "random_string" "suffix" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.1"
+  version = "5.18.1"
 
   name = "education-vpc"
 
@@ -47,7 +47,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.8.5"
+  version = "20.33.1"
 
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
@@ -83,7 +83,7 @@ module "eks" {
     two = {
       name = "node-group-2"
 
-      instance_types = ["t2.micro"]
+      instance_types = ["t3.micro"]
 
       min_size     = 1
       max_size     = 2
@@ -100,7 +100,7 @@ data "aws_iam_policy" "ebs_csi_policy" {
 
 module "irsa-ebs-csi" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
-  version = "5.39.0"
+  version = "5.52.2"
 
   create_role                   = true
   role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
