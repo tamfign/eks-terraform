@@ -52,13 +52,24 @@ module "eks" {
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
 
-  cluster_endpoint_public_access           = true
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = true
+
   enable_cluster_creator_admin_permissions = true
+
+  tags = {
+    Environment = "prod"
+    ManagedBy   = "terraform"
+    RancherReady = "true"
+  }
 
   cluster_addons = {
     aws-ebs-csi-driver = {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
     }
+    kube-proxy = {}
+    vpc-cni = {}
+    coredns = {}
   }
 
   vpc_id     = module.vpc.vpc_id
@@ -67,6 +78,17 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
 
+  }
+
+  node_security_group_additional_rules = {
+    ingress_rancher = {
+      description = "Rancher Server to Node Communication"
+      protocol    = "tcp"
+      from_port   = 10250
+      to_port     = 10250
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"]  # Consider restricting to Rancher server IP range
+    }
   }
 
   eks_managed_node_groups = {
@@ -91,7 +113,6 @@ module "eks" {
     }
   }
 }
-
 
 # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 data "aws_iam_policy" "ebs_csi_policy" {
